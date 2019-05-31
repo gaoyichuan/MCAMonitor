@@ -1,0 +1,29 @@
+3h: FFFF 0001 0001
+2s: "43"
+2i: 00038a62 : 232034, 00038479: 230521
+8s: "01Jan02" '1'
+4s: "0105"
+2h: 0000 0400
+
+start_time = format_ortec_time("43", "0105", "01Jan021", False)
+
+"43": SS
+"0105": HHMM
+"01Jan02": 
+
+data = {"dtype": "i16", "dlen": 0x0400 = 1024}
+
+info_acq = {
+    'time': {
+        'start': {'sec': start_time.timestamp(), 'nsec': 0.0},
+        'stop': {'sec': 0.0, 'nsec': 0.0},
+        'real': float(232034) * 0.020,
+        'live': float(230521) * 0.020,
+    },
+    'device': {'id': 0x0001(1), 'name': "MCA", },
+    'original': {
+        'filename': fin.name,
+        'filetype': "ORTEC Integer Data (.chn)"
+    }}
+    
+info_misc = {"det_num": 0x0001(2), "offset": 0x0000(8)}
