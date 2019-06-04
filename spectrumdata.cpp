@@ -1,7 +1,5 @@
 #include "spectrumdata.h"
 
-namespace fs = std::filesystem;
-
 SpectrumData::SpectrumData() {
 }
 
@@ -10,12 +8,18 @@ SpectrumData::SpectrumData(std::string filename) {
 }
 
 void SpectrumData::readFromFile(std::string filename) {
-    fs::path path(filename);
-    if(!fs::exists(path)) {
+    //    fs::path path(filename);
+    QFileInfo fileinfo(QString::fromStdString(filename));
+    if(!fileinfo.exists()) {
         throw "File " + filename + " not exists";
     }
-    std::string ext_str = path.extension();
-    std::transform(ext_str.begin(), ext_str.end(), ext_str.begin(), ::tolower);
+
+    QFile f(QString::fromStdString(filename));
+    if(!f.open(QIODevice::ReadOnly)) {
+        throw "Open file " + filename + " failed";
+    }
+
+    std::string ext_str = fileinfo.suffix().toLower().toStdString();
     if(fileExtensions.find(ext_str) == fileExtensions.end()) {
         throw "Unknown file extension";
     }
@@ -25,13 +29,13 @@ void SpectrumData::readFromFile(std::string filename) {
     case FMT_ORTEC_CHN: {
         // read from chn file
         struct OrtecChnHeader header;
-        if(fs::file_size(path) < sizeof(OrtecChnHeader)) {
+        if(fileinfo.size() < sizeof(OrtecChnHeader)) {
             throw "Ortec file too small";
         }
 
         try {
-            std::ifstream ifs(path, std::ios::binary);
-            ifs.read((char *)&header, sizeof(OrtecChnHeader));
+            QDataStream ifs(&f);
+            ifs.readRawData((char *)&header, sizeof(OrtecChnHeader));
 
             std::stringstream time_str;
             struct std::tm tm;
@@ -44,16 +48,14 @@ void SpectrumData::readFromFile(std::string filename) {
             this->realTime = header.real_time * 0.02;
 
             this->dev_name = "MCA";
-            this->file = path;
+            this->filename = fileinfo.fileName();
 
             this->data.clear();
             uint32_t d;
             for(uint64_t i = 0; i < header.dlength; i++) {
-                ifs.read((char *)&d, sizeof(uint32_t));
+                ifs.readRawData((char *)&d, sizeof(uint32_t));
                 this->data.push_back(d);
             }
-
-            ifs.close();
         } catch(std::exception &e) {
             throw e;
         }

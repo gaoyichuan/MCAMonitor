@@ -48,12 +48,22 @@ void MainWindow::on_menu_openFileAction() {
 
     this->ui->spectrumArea->getSeries()->clear();
 
+    QPointF maxp(0, 0);
+    uint64_t sum = 0;
+
     for(uint64_t i = 0; i < spec->data.size(); i++) {
         this->ui->spectrumArea->getSeries()->append(i, spec->data[i]);
+        sum += spec->data[i];
+        if(spec->data[i] > maxp.y()) {
+            maxp.setX(i);
+            maxp.setY(spec->data[i]);
+        }
     }
 
     this->ui->spectrumArea->getAxisX()->setRange(0, spec->data.size());
-    this->ui->spectrumArea->getAxisY()->setRange(0, *std::max_element(spec->data.begin(), spec->data.end()));
+    this->ui->spectrumArea->getAxisY()->setRange(0, maxp.y());
+    this->ui->spectrumArea->setMax(maxp);
+    this->ui->spectrumArea->setSum(sum);
     this->on_spectrum_dataUpdated();
 }
 
@@ -87,10 +97,7 @@ void MainWindow::on_spectrum_dataUpdated() {
     this->ui->stopChnCnt->setNum((int)((vec.end() - 1)->y()));
     this->ui->curChnAddr->setNum((int)this->ui->spectrumArea->getCursor());
     this->ui->curChnCnt->setNum((int)vec.at(this->ui->spectrumArea->getCursor()).y());
-
-    uint64_t totalCnt = 0;
-    for(auto v : vec) totalCnt += v.y();
-    this->ui->totalCnt->setNum((int)totalCnt);
+    this->ui->totalCnt->setNum((int)this->ui->spectrumArea->getSum());
 }
 
 // call by menu button

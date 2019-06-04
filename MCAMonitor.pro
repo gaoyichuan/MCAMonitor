@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui charts
+QT       += core gui charts svg
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++17
 
 SOURCES += \
+        basicspectrumview.cpp \
         callout.cpp \
         main.cpp \
         mainwindow.cpp \
@@ -32,6 +33,7 @@ SOURCES += \
         spectrumview.cpp
 
 HEADERS += \
+        basicspectrumview.h \
         callout.h \
         main.h \
         mainwindow.h \
@@ -41,7 +43,7 @@ HEADERS += \
 FORMS += \
         mainwindow.ui
 
-LIBS += -lstdc++fs
+LIBS +=
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

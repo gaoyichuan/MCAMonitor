@@ -5,21 +5,23 @@
 #include <cstdint>
 #include <cstring>
 #include <ctime>
-#include <filesystem>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <stack>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
-#include <stack>
-#include <utility>
+#include <QDataStream>
+#include <QFile>
+#include <QFileInfo>
 
 #define FMT_ORTEC_CHN 1
 
 static std::unordered_map<std::string, uint32_t> fileExtensions = {
-    {".chn", FMT_ORTEC_CHN}};
+    {"chn", FMT_ORTEC_CHN}};
 
 struct OrtecChnHeader {
     // header
@@ -41,7 +43,7 @@ class SpectrumData {
     time_t acqStart, acqStop;
     double realTime, liveTime; // in seconds
     std::string dev_name;
-    std::filesystem::path file;
+    QString filename;
 
     std::vector<uint64_t> data;
 };

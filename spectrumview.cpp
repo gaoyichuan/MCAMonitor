@@ -13,6 +13,7 @@ spectrumView::spectrumView(QWidget *parent) : QChartView(new QChart(), parent) {
 
     this->series->attachAxis(this->axisX);
     this->series->attachAxis(this->axisY);
+//    this->series->setUseOpenGL(true);
 
     this->setChart(this->chart);
     this->setRenderHint(QPainter::Antialiasing);
@@ -51,6 +52,18 @@ void spectrumView::keyPressEvent(QKeyEvent *event) {
     }
     case Qt::Key_Minus: {
         this->scaleY(0.8);
+        break;
+    }
+    case Qt::Key_Left: {
+        if(this->cursor >= 1) this->cursor--;
+        this->update();
+        emit spectrumUpdated();
+        break;
+    }
+    case Qt::Key_Right: {
+        if(this->cursor < this->series->count() - 1) this->cursor++;
+        this->update();
+        emit spectrumUpdated();
         break;
     }
     }
@@ -93,7 +106,7 @@ void spectrumView::mousePressEvent(QMouseEvent *event) {
 }
 
 void spectrumView::mouseMoveEvent(QMouseEvent *event) {
-    if((event->buttons() & Qt::LeftButton) && !this->simTimer->isActive()) {
+    if((event->buttons() & Qt::LeftButton) && !this->simQueueSyncTimer->isActive()) {
         if((event->pos() - this->dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
             // TODO: click logic
         } else {
@@ -129,12 +142,12 @@ void spectrumView::mouseMoveEvent(QMouseEvent *event) {
 void spectrumView::mouseReleaseEvent(QMouseEvent *event) {
     if(event->button() == Qt::LeftButton) {
         if((event->pos() - this->dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
-            auto data = this->pointToSeriesData(event->pos());
-            qDebug() << "click on" << data.x() << "," << data.y();
-            if(data.x() >= 0 && data.x() < this->series->count()) {
-                this->cursor = data.x();
-            }
-        } else if(!this->simTimer->isActive()) {
+            //            auto data = this->pointToSeriesData(event->pos());
+            //            qDebug() << "click on" << data.x() << "," << data.y();
+            //            if(data.x() >= 0 && data.x() < this->series->count()) {
+            //                this->cursor = data.x();
+            //            }
+        } else if(!this->simQueueSyncTimer->isActive()) {
             this->rubberBand->hide();
 
             QRectF rect = this->rubberBand->geometry();
@@ -156,37 +169,66 @@ void spectrumView::startSimAcq(double inteval) {
     for(size_t i = 0; i < 1024; i++) {
         this->series->append(i, 0);
     }
-
+    this->simQueue.resize(1024);
     this->axisX->setRange(0, 1024);
 
-    this->dist = new std::normal_distribution(this->series->count(), 128);
-    this->axisY->setRange(0, 256);
+    this->dist = new std::binomial_distribution(this->series->count(), 0.5);
+    this->axisY->setRange(0, 512);
 
-    connect(this->simTimer, SIGNAL(timeout()), this, SLOT(updateSimAcq()));
+    connect(this->simTimer, SIGNAL(timeout()), this, SLOT(simEnqueue()));
+//    this->simTimer->setTimerType(Qt::PreciseTimer);
     this->simTimer->start(inteval);
+    this->simInteval = inteval;
+
+    connect(this->simQueueSyncTimer, SIGNAL(timeout()), this, SLOT(simQueueSync()));
+    this->simQueueSyncTimer->start(500);
     this->simStartTime = QDateTime::currentMSecsSinceEpoch();
 }
 
 void spectrumView::stopSimAcq() {
-    if(this->simTimer->isActive()) {
+    if(this->simQueueSyncTimer->isActive()) {
         this->simTimer->stop();
+        this->simQueueSyncTimer->stop();
     }
 }
 
 void spectrumView::clearAcqData() {
     this->clearRoi();
     this->series->clear();
+    this->max = QPointF(0, 0);
+    this->sum = 0;
+    this->simQueue.clear();
 }
 
-void spectrumView::updateSimAcq() {
-    uint64_t x = this->dist->operator()(this->gen);
-    if(x < this->series->count()) {
+void spectrumView::simEnqueue() {
+    uint32_t x;
+
+//    do {
+        x = this->dist->operator()(this->gen);
+//    } while(x >= this->series->count());
+
+    this->simQueue[x] += 2;
+}
+
+void spectrumView::simQueueSync() {
+//    this->simTimer->stop();
+
+    for(uint64_t x = 0; x < this->series->count(); x++) {
         auto point = this->series->at(x);
-        point.setY(point.y() + 1);
-        this->series->remove(x);
-        this->series->insert(x, point);
+        this->series->replace(x, x, point.y() + this->simQueue[x]);
+        this->sum += this->simQueue[x];
+
+        if(point.y() + this->simQueue[x] > this->max.y()) {
+            this->max.setX(x);
+            this->max.setY(point.y() + this->simQueue[x]);
+        }
     }
 
+    this->simQueue.clear();
+    this->simQueue.resize(1024);
+
+//    this->simTimer->start(this->simInteval);
+    if(this->axisY->max() <= this->max.y() * 1.2) this->scaleY(1.2);
     emit simUpdated(this->simStartTime);
 }
 
@@ -203,6 +245,14 @@ void spectrumView::paintEvent(QPaintEvent *event) {
     }
 
     event->accept();
+}
+
+uint64_t spectrumView::getSum() const {
+    return sum;
+}
+
+void spectrumView::setSum(const uint64_t &value) {
+    sum = value;
 }
 
 bool compareRoi(std::pair<uint64_t, uint64_t> l, std::pair<uint64_t, uint64_t> r) {
@@ -333,6 +383,13 @@ QValueAxis *spectrumView::getAxisX() const {
     return axisX;
 }
 
+QPointF spectrumView::getMax() const {
+    return max;
+}
+
+void spectrumView::setMax(const QPointF &value) {
+    max = value;
+}
 uint64_t spectrumView::getCursor() const {
     return cursor;
 }

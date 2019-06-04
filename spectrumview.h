@@ -38,6 +38,12 @@ class spectrumView : public QChartView {
 
     uint64_t getCursor() const;
 
+    QPointF getMax() const;
+    void setMax(const QPointF &value);
+
+    uint64_t getSum() const;
+    void setSum(const uint64_t &value);
+
   private Q_SLOTS:
     void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
@@ -45,7 +51,8 @@ class spectrumView : public QChartView {
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
-    void updateSimAcq();
+    void simEnqueue();
+    void simQueueSync();
 
   public Q_SLOTS:
     void startSimAcq(double inteval);
@@ -65,6 +72,14 @@ class spectrumView : public QChartView {
     QLineSeries *series = new QLineSeries();
     QChart *chart = new QChart();
 
+    // max and min values
+    QPointF max;
+    uint64_t sum = 0;
+
+    // simulation update queue
+    std::vector<uint64_t> simQueue;
+    QTimer *simQueueSyncTimer = new QTimer(this);
+
     // rubber band for selection
     QRubberBand *rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
     QPoint rubberBandOrigin;
@@ -83,8 +98,10 @@ class spectrumView : public QChartView {
     // timer and rng for simulation
     QTimer *simTimer = new QTimer(this);
     uint64_t simStartTime;
+    double simInteval = 0;
     std::default_random_engine gen;
-    std::normal_distribution<double> *dist;
+//    std::normal_distribution<float> *dist;
+    std::binomial_distribution<> *dist;
 };
 
 #endif // SPECTRUMVIEW_H
