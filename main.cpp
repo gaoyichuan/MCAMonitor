@@ -9,6 +9,7 @@ int main(int argc, char *argv[]) {
     a.setOrganizationDomain("gycis.me");
     a.setOrganizationName("gaoyichuan");
     a.setApplicationName("MCA Monitor");
+    a.setKeyboardInputInterval(100);
     MainWindow w;
     w.show();
 

@@ -42,12 +42,12 @@
        <enum>QLayout::SetDefaultConstraint</enum>
       </property>
       <item row="0" column="1">
-       <layout class="QVBoxLayout" name="verticalLayout_2" stretch="4,6">
+       <layout class="QVBoxLayout" name="verticalLayout_2" stretch="7,13">
         <item>
-         <widget class="spectrumView" name="roiScaleArea"/>
+         <widget class="RoiView" name="roiScaleArea"/>
         </item>
         <item>
-         <widget class="spectrumView" name="spectrumArea">
+         <widget class="SpectrumView" name="spectrumArea">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -268,51 +268,47 @@
          </spacer>
         </item>
         <item>
-         <layout class="QGridLayout" name="acqControlGrid" rowstretch="1,1,1" columnstretch="2,2,2">
+         <layout class="QGridLayout" name="acqControlGrid" rowstretch="1,0,0,0,0" columnstretch="1,4,4,3,1">
           <property name="sizeConstraint">
            <enum>QLayout::SetDefaultConstraint</enum>
           </property>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_5">
+          <item row="2" column="1">
+           <widget class="QLabel" name="label_13">
             <property name="text">
-             <string>已采样</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             <string>计数限制</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
+          <item row="3" column="1">
+           <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>采样时间</string>
+             <string>仿真速度</string>
             </property>
            </widget>
           </item>
           <item row="2" column="2">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>s</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="simTimeElaspedLabel">
-            <property name="text">
-             <string>0.0</string>
-            </property>
+           <widget class="QDoubleSpinBox" name="simCountInput">
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
+            <property name="decimals">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <double>100000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>10000.000000000000000</double>
+            </property>
+            <property name="stepType">
+             <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
+            </property>
+            <property name="value">
+             <double>10000.000000000000000</double>
+            </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="1" column="2">
            <widget class="QDoubleSpinBox" name="simTimeInput">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -337,7 +333,93 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
+          <item row="3" column="2">
+           <widget class="QDoubleSpinBox" name="simIntevalInput">
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1000.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>10.000000000000000</double>
+            </property>
+            <property name="stepType">
+             <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
+            </property>
+            <property name="value">
+             <double>2.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2" colspan="2">
+           <widget class="QComboBox" name="simMethodInput">
+            <item>
+             <property name="text">
+              <string>固定时间</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>固定计数</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QLabel" name="simTimeElaspedLabel">
+            <property name="text">
+             <string>0.0</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>已采样</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="3">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>s</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>仿真方式</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="label_4">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>采样时间</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
            <widget class="QComboBox" name="simTimeUnit">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -365,41 +447,45 @@
             </item>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_6">
+          <item row="2" column="3">
+           <widget class="QLabel" name="label_14">
             <property name="text">
-             <string>仿真速度</string>
+             <string>次</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QDoubleSpinBox" name="simIntevalInput">
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="decimals">
-             <number>1</number>
-            </property>
-            <property name="minimum">
-             <double>1.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>1000.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>10.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>10.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
+          <item row="3" column="3">
            <widget class="QLabel" name="label_8">
             <property name="text">
              <string>ms</string>
             </property>
            </widget>
+          </item>
+          <item row="2" column="4">
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="2" column="0">
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </item>
@@ -434,6 +520,8 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionOpenFile"/>
+   <addaction name="actionSaveFile"/>
+   <addaction name="separator"/>
    <addaction name="actionStartAcq"/>
    <addaction name="actionStopAcq"/>
    <addaction name="actionClearAcq"/>
@@ -458,6 +546,9 @@
    <property name="text">
     <string>开始采集</string>
    </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
   </action>
   <action name="actionStopAcq">
    <property name="icon">
@@ -466,6 +557,9 @@
    </property>
    <property name="text">
     <string>停止采集</string>
+   </property>
+   <property name="shortcut">
+    <string>Return</string>
    </property>
   </action>
   <action name="actionClearAcq">
@@ -476,20 +570,50 @@
    <property name="text">
     <string>清空能谱</string>
    </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
+  </action>
+  <action name="actionSaveFile">
+   <property name="icon">
+    <iconset resource="mca.qrc">
+     <normaloff>:/icons/toolbar/resources/save.svg</normaloff>:/icons/toolbar/resources/save.svg</iconset>
+   </property>
+   <property name="text">
+    <string>保存能谱文件</string>
+   </property>
+   <property name="toolTip">
+    <string>保存能谱文件</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>spectrumView</class>
+   <class>SpectrumView</class>
    <extends>QGraphicsView</extends>
    <header>spectrumview.h</header>
    <slots>
+    <signal>signal1()</signal>
     <signal>simUpdated(uint64_t)</signal>
     <signal>spectrumUpdated()</signal>
+    <signal>roiUpdated(PointsVector)</signal>
+    <signal>cursorUpdated(uint64_t)</signal>
+    <slot>startSimAcq(double)</slot>
     <slot>stopSimAcq()</slot>
-    <slot>startSimAcq()</slot>
     <slot>clearAcqData()</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>RoiView</class>
+   <extends>QGraphicsView</extends>
+   <header>roiview.h</header>
+   <slots>
+    <slot>updateRoi(PointsVector)</slot>
+    <slot>updateCursor(uint64_t)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -532,32 +656,32 @@
   <connection>
    <sender>actionStopAcq</sender>
    <signal>triggered()</signal>
-   <receiver>spectrumArea</receiver>
-   <slot>stopSimAcq()</slot>
+   <receiver>MainWindow</receiver>
+   <slot>on_menu_stopAcqAction()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>459</x>
-     <y>265</y>
+     <x>365</x>
+     <y>257</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>actionClearAcq</sender>
    <signal>triggered()</signal>
-   <receiver>spectrumArea</receiver>
-   <slot>clearAcqData()</slot>
+   <receiver>MainWindow</receiver>
+   <slot>on_menu_clearAcqDataAction()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>459</x>
-     <y>265</y>
+     <x>365</x>
+     <y>257</y>
     </hint>
    </hints>
   </connection>
@@ -593,11 +717,79 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>spectrumArea</sender>
+   <signal>roiUpdated(PointsVector)</signal>
+   <receiver>roiScaleArea</receiver>
+   <slot>updateRoi(PointsVector)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>424</x>
+     <y>291</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>397</x>
+     <y>73</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSaveFile</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>on_menu_saveFileAction()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>257</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spectrumArea</sender>
+   <signal>cursorUpdated(uint64_t)</signal>
+   <receiver>roiScaleArea</receiver>
+   <slot>updateCursor(uint64_t)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>536</x>
+     <y>292</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>529</x>
+     <y>153</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spectrumArea</sender>
+   <signal>cursorUpdated(uint64_t)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>on_spectrum_cursorUpdated(uint64_t)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>620</x>
+     <y>376</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>183</x>
+     <y>444</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>on_menu_openFileAction()</slot>
   <slot>on_spectrum_simUpdated(uint64_t)</slot>
   <slot>on_menu_startAcqAction()</slot>
   <slot>on_spectrum_dataUpdated()</slot>
+  <slot>on_menu_clearAcqDataAction()</slot>
+  <slot>on_menu_saveFileAction()</slot>
+  <slot>on_menu_stopAcqAction()</slot>
+  <slot>on_spectrum_cursorUpdated(uint64_t)</slot>
  </slots>
 </ui>

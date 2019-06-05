@@ -29,6 +29,7 @@ SOURCES += \
         callout.cpp \
         main.cpp \
         mainwindow.cpp \
+        roiview.cpp \
         spectrumdata.cpp \
         spectrumview.cpp
 
@@ -37,6 +38,7 @@ HEADERS += \
         callout.h \
         main.h \
         mainwindow.h \
+        roiview.h \
         spectrumdata.h \
         spectrumview.h
 

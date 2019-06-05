@@ -35,9 +35,10 @@ struct OrtecChnHeader {
 class SpectrumData {
   public:
     SpectrumData();
-    SpectrumData(std::string filename); // from file
+    SpectrumData(QString filename); // from file
 
-    void readFromFile(std::string filename);
+    void readFromFile(QString filename);
+    void saveToFile(QString filename);
 
     // private:
     time_t acqStart, acqStop;

@@ -4,5 +4,6 @@
         <file>resources/stop.svg</file>
         <file>resources/open-archive.svg</file>
         <file>resources/clear.svg</file>
+        <file>resources/save.svg</file>
     </qresource>
 </RCC>

@@ -1,6 +1,8 @@
 #ifndef SPECTRUMVIEW_H
 #define SPECTRUMVIEW_H
 
+#include "basicspectrumview.h"
+
 #include <QtCharts>
 #include <random>
 #include <stack>
@@ -11,14 +13,14 @@
 
 QT_CHARTS_USE_NAMESPACE
 
-class spectrumView : public QChartView {
+class SpectrumView : public BasicSpectrumView {
     Q_OBJECT
 
   public:
-    spectrumView(QWidget *parent = nullptr);
+    SpectrumView(BasicSpectrumView *parent = nullptr);
+    SpectrumView(QWidget *parent = nullptr);
 
-    void scaleY(qreal factor);
-
+    static bool compareRoi(std::pair<uint64_t, uint64_t> l, std::pair<uint64_t, uint64_t> r);
     void addRoi(std::pair<uint64_t, uint64_t> r);
     // return true when success
     bool removeRoi(uint64_t channel);
@@ -27,25 +29,9 @@ class spectrumView : public QChartView {
     void clearRoi();
     std::pair<uint64_t, uint64_t> *findRoi(QPointF point);
 
-    template <class T>
-    QPointF pointToSeriesData(T point);
-    qreal channelToPointX(uint64_t chn);
-
-    QValueAxis *getAxisX() const;
-    QValueAxis *getAxisY() const;
-    QLineSeries *getSeries() const;
-    QChart *getChart() const;
-
-    uint64_t getCursor() const;
-
-    QPointF getMax() const;
-    void setMax(const QPointF &value);
-
-    uint64_t getSum() const;
-    void setSum(const uint64_t &value);
+    uint64_t getSimStartTime() const;
 
   private Q_SLOTS:
-    void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -62,20 +48,10 @@ class spectrumView : public QChartView {
   Q_SIGNALS:
     void simUpdated(uint64_t startTime);
     void spectrumUpdated();
-
-  protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void roiUpdated(PointsVector data);
+    void cursorUpdated(uint64_t cur);
 
   private:
-    QValueAxis *axisX = new QValueAxis();
-    QValueAxis *axisY = new QValueAxis();
-    QLineSeries *series = new QLineSeries();
-    QChart *chart = new QChart();
-
-    // max and min values
-    QPointF max;
-    uint64_t sum = 0;
-
     // simulation update queue
     std::vector<uint64_t> simQueue;
     QTimer *simQueueSyncTimer = new QTimer(this);
@@ -89,18 +65,15 @@ class spectrumView : public QChartView {
     std::vector<std::pair<uint64_t, uint64_t> > roi;
 
     // callout storage
-    Callout *tooltip = new Callout(this->chart);
+    Callout *tooltip = new Callout(this->getChart());
     QList<Callout *> callouts;
-
-    // cursor
-    uint64_t cursor = 0;
 
     // timer and rng for simulation
     QTimer *simTimer = new QTimer(this);
     uint64_t simStartTime;
     double simInteval = 0;
     std::default_random_engine gen;
-//    std::normal_distribution<float> *dist;
+    //    std::normal_distribution<float> *dist;
     std::binomial_distribution<> *dist;
 };
 

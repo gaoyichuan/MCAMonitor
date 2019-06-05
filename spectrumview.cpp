@@ -3,47 +3,20 @@
 
 QT_CHARTS_USE_NAMESPACE
 
-spectrumView::spectrumView(QWidget *parent) : QChartView(new QChart(), parent) {
-    this->chart->legend()->hide();
-    this->chart->addSeries(this->series);
-    this->chart->addAxis(this->axisX, Qt::AlignBottom);
-    this->chart->addAxis(this->axisY, Qt::AlignLeft);
-
-    // TODO: chart theme
-
-    this->series->attachAxis(this->axisX);
-    this->series->attachAxis(this->axisY);
-//    this->series->setUseOpenGL(true);
-
-    this->setChart(this->chart);
-    this->setRenderHint(QPainter::Antialiasing);
+SpectrumView::SpectrumView(QWidget *parent) : BasicSpectrumView(new BasicSpectrumView(parent)) {
 }
 
-void spectrumView::scaleY(qreal factor) {
-    //    qreal center = (this->axisY->max() + this->axisY->min()) * 0.5;
-    //    this->axisY->setMax((this->axisY->max() - center) * factor);
-    //    this->axisY->setMin((center - this->axisY->min()) * factor);
-    this->axisY->setMax(std::ceil(this->axisY->max() * factor));
-}
-
-void spectrumView::wheelEvent(QWheelEvent *event) {
-    qreal factor = event->angleDelta().y() > 0 ? 0.8 : 1.2;
-    this->scaleY(factor);
-    event->accept();
-    QChartView::wheelEvent(event);
-}
-
-void spectrumView::keyPressEvent(QKeyEvent *event) {
+void SpectrumView::keyPressEvent(QKeyEvent *event) {
     switch(event->key()) {
     case Qt::Key_Up: {
-        qreal shift = (this->axisY->max() - this->axisY->min()) * 0.1;
-        this->axisY->setRange(this->axisY->min() + shift, this->axisY->max() + shift);
+        qreal shift = (this->getAxisY()->max() - this->getAxisY()->min()) * 0.1;
+        this->getAxisY()->setRange(this->getAxisY()->min() + shift, this->getAxisY()->max() + shift);
         break;
     }
     case Qt::Key_Down: {
-        qreal shift = (this->axisY->max() - this->axisY->min()) * 0.1;
-        if(shift > this->axisY->min()) shift = this->axisY->min();
-        this->axisY->setRange(this->axisY->min() - shift, this->axisY->max() - shift);
+        qreal shift = (this->getAxisY()->max() - this->getAxisY()->min()) * 0.1;
+        if(shift > this->getAxisY()->min()) shift = this->getAxisY()->min();
+        this->getAxisY()->setRange(this->getAxisY()->min() - shift, this->getAxisY()->max() - shift);
         break;
     }
     case Qt::Key_Plus: {
@@ -55,15 +28,13 @@ void spectrumView::keyPressEvent(QKeyEvent *event) {
         break;
     }
     case Qt::Key_Left: {
-        if(this->cursor >= 1) this->cursor--;
-        this->update();
-        emit spectrumUpdated();
+        if(this->getCursor() >= 1) this->setCursor(this->getCursor() - 1);
+        emit cursorUpdated(this->getCursor());
         break;
     }
     case Qt::Key_Right: {
-        if(this->cursor < this->series->count() - 1) this->cursor++;
-        this->update();
-        emit spectrumUpdated();
+        if(this->getCursor() < this->getSeries()->count() - 1) this->setCursor(this->getCursor() + 1);
+        emit cursorUpdated(this->getCursor());
         break;
     }
     }
@@ -72,26 +43,7 @@ void spectrumView::keyPressEvent(QKeyEvent *event) {
     QChartView::keyPressEvent(event);
 }
 
-template <class T>
-QPointF spectrumView::pointToSeriesData(T point) {
-    auto scenePos = mapToScene(QPoint(static_cast<int>(point.x()), static_cast<int>(point.y())));
-    auto chartItemPos = this->chart->mapFromScene(scenePos);
-    auto valueGivenSeries = this->chart->mapToValue(chartItemPos);
-
-    if(valueGivenSeries.x() < this->axisX->min()) valueGivenSeries.setX(this->axisX->min());
-    if(valueGivenSeries.x() > this->axisX->max()) valueGivenSeries.setX(this->axisX->max());
-
-    return valueGivenSeries;
-}
-
-qreal spectrumView::channelToPointX(uint64_t chn) {
-    if(this->series->count() == 0) return 0;
-
-    qreal chn_width = this->chart->plotArea().width() / this->series->count();
-    return this->chart->plotArea().left() + chn_width * chn;
-}
-
-void spectrumView::mousePressEvent(QMouseEvent *event) {
+void SpectrumView::mousePressEvent(QMouseEvent *event) {
     if(event->button() == Qt::LeftButton) {
         this->dragStartPosition = event->pos();
         if(!this->simTimer->isActive()) {
@@ -105,12 +57,12 @@ void spectrumView::mousePressEvent(QMouseEvent *event) {
     event->accept();
 }
 
-void spectrumView::mouseMoveEvent(QMouseEvent *event) {
+void SpectrumView::mouseMoveEvent(QMouseEvent *event) {
     if((event->buttons() & Qt::LeftButton) && !this->simQueueSyncTimer->isActive()) {
         if((event->pos() - this->dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
             // TODO: click logic
         } else {
-            QRect rect = this->chart->plotArea().toRect();
+            QRect rect = this->getChart()->plotArea().toRect();
             int width = event->pos().x() - this->rubberBandOrigin.x();
             int height = event->pos().y() - this->rubberBandOrigin.y();
 
@@ -121,11 +73,13 @@ void spectrumView::mouseMoveEvent(QMouseEvent *event) {
             this->rubberBand->show();
         }
     } else if(event->buttons() == Qt::NoButton) { // hover
-        if(this->chart->series().size() != 0) {
+        if(this->getChart()->series().size() != 0) {
             auto point = this->pointToSeriesData(event->pos());
             auto r = this->findRoi(point);
             if(r != nullptr) {
-                this->tooltip->setText(QString("ROI %1\n To %2").arg(r->first).arg(r->second));
+                uint64_t sum = 0;
+                for(auto i = r->first; i < r->second; i++) sum += this->getSeries()->at(i).y();
+                this->tooltip->setText(QString("ROI %1\n To %2\n Sum %3").arg(r->first).arg(r->second).arg(sum));
                 this->tooltip->setAnchor(point);
                 this->tooltip->setZValue(10);
                 this->tooltip->updateGeometry();
@@ -139,20 +93,27 @@ void spectrumView::mouseMoveEvent(QMouseEvent *event) {
     event->accept();
 }
 
-void spectrumView::mouseReleaseEvent(QMouseEvent *event) {
+void SpectrumView::mouseReleaseEvent(QMouseEvent *event) {
     if(event->button() == Qt::LeftButton) {
         if((event->pos() - this->dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
-            //            auto data = this->pointToSeriesData(event->pos());
-            //            qDebug() << "click on" << data.x() << "," << data.y();
-            //            if(data.x() >= 0 && data.x() < this->series->count()) {
-            //                this->cursor = data.x();
-            //            }
+            auto data = this->pointToSeriesData(event->pos());
+            auto roi = this->findRoi(data);
+            if(roi != nullptr) {
+                PointsVector roiData;
+                for(size_t i = roi->first; i < roi->second; i++) {
+                    roiData.push_back(this->getSeries()->pointsVector().at(i));
+                }
+                emit roiUpdated(roiData);
+            }
+
+            this->setCursor(data.x());
+            emit cursorUpdated(this->getCursor());
         } else if(!this->simQueueSyncTimer->isActive()) {
             this->rubberBand->hide();
 
             QRectF rect = this->rubberBand->geometry();
-            rect.setY(this->chart->plotArea().y());
-            rect.setHeight(this->chart->plotArea().height());
+            rect.setY(this->getChart()->plotArea().y());
+            rect.setHeight(this->getChart()->plotArea().height());
 
             std::pair<uint64_t, uint64_t> region;
 
@@ -164,19 +125,18 @@ void spectrumView::mouseReleaseEvent(QMouseEvent *event) {
     }
 }
 
-void spectrumView::startSimAcq(double inteval) {
-    this->clearAcqData();
+void SpectrumView::startSimAcq(double inteval) {
     for(size_t i = 0; i < 1024; i++) {
-        this->series->append(i, 0);
+        this->getSeries()->append(i, 0);
     }
     this->simQueue.resize(1024);
-    this->axisX->setRange(0, 1024);
+    this->getAxisX()->setRange(0, 1024);
 
-    this->dist = new std::binomial_distribution(this->series->count(), 0.5);
-    this->axisY->setRange(0, 512);
+    this->dist = new std::binomial_distribution(this->getSeries()->count(), 0.5);
+    this->getAxisY()->setRange(0, 512);
 
     connect(this->simTimer, SIGNAL(timeout()), this, SLOT(simEnqueue()));
-//    this->simTimer->setTimerType(Qt::PreciseTimer);
+    //    this->simTimer->setTimerType(Qt::PreciseTimer);
     this->simTimer->start(inteval);
     this->simInteval = inteval;
 
@@ -185,115 +145,87 @@ void spectrumView::startSimAcq(double inteval) {
     this->simStartTime = QDateTime::currentMSecsSinceEpoch();
 }
 
-void spectrumView::stopSimAcq() {
+void SpectrumView::stopSimAcq() {
     if(this->simQueueSyncTimer->isActive()) {
         this->simTimer->stop();
         this->simQueueSyncTimer->stop();
     }
 }
 
-void spectrumView::clearAcqData() {
+void SpectrumView::clearAcqData() {
     this->clearRoi();
-    this->series->clear();
-    this->max = QPointF(0, 0);
-    this->sum = 0;
+    this->getSeries()->clear();
+    this->setMax(QPointF(0, 0));
+    this->setSum(0);
     this->simQueue.clear();
 }
 
-void spectrumView::simEnqueue() {
-    uint32_t x;
-
-//    do {
-        x = this->dist->operator()(this->gen);
-//    } while(x >= this->series->count());
-
-    this->simQueue[x] += 2;
+void SpectrumView::simEnqueue() {
+    this->simQueue[this->dist->operator()(this->gen)] += 2;
 }
 
-void spectrumView::simQueueSync() {
-//    this->simTimer->stop();
+void SpectrumView::simQueueSync() {
+    for(uint64_t x = 0; x < this->getSeries()->count(); x++) {
+        auto point = this->getSeries()->at(x);
+        this->getSeries()->replace(x, x, point.y() + this->simQueue[x]);
+        this->setSum(this->getSum() + this->simQueue[x]);
 
-    for(uint64_t x = 0; x < this->series->count(); x++) {
-        auto point = this->series->at(x);
-        this->series->replace(x, x, point.y() + this->simQueue[x]);
-        this->sum += this->simQueue[x];
-
-        if(point.y() + this->simQueue[x] > this->max.y()) {
-            this->max.setX(x);
-            this->max.setY(point.y() + this->simQueue[x]);
+        if(point.y() + this->simQueue[x] > this->getMax().y()) {
+            this->getMax().setX(x);
+            this->getMax().setY(point.y() + this->simQueue[x]);
         }
     }
 
     this->simQueue.clear();
     this->simQueue.resize(1024);
 
-//    this->simTimer->start(this->simInteval);
-    if(this->axisY->max() <= this->max.y() * 1.2) this->scaleY(1.2);
+    if(this->getAxisY()->max() <= this->getMax().y() * 1.2) this->scaleY(1.2);
     emit simUpdated(this->simStartTime);
 }
 
-void spectrumView::paintEvent(QPaintEvent *event) {
-    QChartView::paintEvent(event);
-
-    if(this->series->count() > 0) {
-        qreal curX = this->channelToPointX(this->cursor);
-        QPainter painter(this->viewport());
-        painter.setRenderHint(QPainter::Antialiasing);
-        painter.setPen(QColor(0, 0, 0));
-        painter.setBrush(painter.pen().color());
-        painter.drawLine(curX, this->chart->plotArea().bottom(), curX, this->chart->plotArea().top());
-    }
-
-    event->accept();
+uint64_t SpectrumView::getSimStartTime() const {
+    return simStartTime;
 }
 
-uint64_t spectrumView::getSum() const {
-    return sum;
-}
-
-void spectrumView::setSum(const uint64_t &value) {
-    sum = value;
-}
-
-bool compareRoi(std::pair<uint64_t, uint64_t> l, std::pair<uint64_t, uint64_t> r) {
+bool SpectrumView::compareRoi(std::pair<uint64_t, uint64_t> l, std::pair<uint64_t, uint64_t> r) {
     return (l.first < r.first);
 }
 
-void spectrumView::redrawRoi() {
+void SpectrumView::redrawRoi() {
     // TODO: wait for better way to do that
     // removeAllSeries() will actually DELETE the series, so copy one first
     QLineSeries *newSeries = new QLineSeries();
-    for(auto point : this->series->pointsVector()) newSeries->append(point);
+    for(auto point : this->getSeries()->pointsVector()) newSeries->append(point);
 
     // clean everything and add back our spectrum series
-    this->chart->removeAllSeries();
-    this->series = newSeries;
-    this->chart->addSeries(this->series);
+    this->getChart()->removeAllSeries();
+    this->setSeries(newSeries);
+    this->getChart()->addSeries(this->getSeries());
 
-    this->series->attachAxis(this->axisX);
-    this->series->attachAxis(this->axisY);
+    this->getSeries()->attachAxis(this->getAxisX());
+    this->getSeries()->attachAxis(this->getAxisY());
 
     // use QAreaSeries to fill roi
-    QPen pen = this->series->pen();
+    QPen pen = this->getSeries()->pen();
     QBrush brush(Qt::yellow); // TODO: config
 
     for(size_t i = 0; i < this->roi.size(); i++) {
         QLineSeries *top_line = new QLineSeries();
         QLineSeries *bottom_line = new QLineSeries();
         for(uint64_t k = this->roi[i].first; k < this->roi[i].second; k++) {
-            top_line->append(this->series->pointsVector().at(k));
-            bottom_line->append(this->series->pointsVector().at(k).x(), 0);
+            top_line->append(this->getSeries()->pointsVector().at(k));
+            bottom_line->append(this->getSeries()->pointsVector().at(k).x(), 0);
         }
         QAreaSeries *area = new QAreaSeries(top_line, bottom_line);
         area->setPen(pen);
         area->setBrush(brush);
-        this->chart->addSeries(area);
-        area->attachAxis(this->axisX);
-        area->attachAxis(this->axisY);
+        this->getChart()->addSeries(area);
+        area->attachAxis(this->getAxisX());
+        area->attachAxis(this->getAxisY());
     }
 }
 
-std::pair<uint64_t, uint64_t> *spectrumView::findRoi(QPointF point) {
+std::pair<uint64_t, uint64_t> *SpectrumView::findRoi(QPointF point) {
     for(auto it = this->roi.begin(); it != this->roi.end(); it++) {
         if((point.x() >= (*it).first) && (point.x() < (*it).second)) {
             return &(*it);
@@ -302,9 +234,9 @@ std::pair<uint64_t, uint64_t> *spectrumView::findRoi(QPointF point) {
     return nullptr;
 }
 
-void spectrumView::addRoi(std::pair<uint64_t, uint64_t> r) {
+void SpectrumView::addRoi(std::pair<uint64_t, uint64_t> r) {
     this->roi.push_back(r);
-    std::sort(this->roi.begin(), this->roi.end(), compareRoi);
+    std::sort(this->roi.begin(), this->roi.end(), this->compareRoi);
     std::stack<std::pair<uint64_t, uint64_t> > s;
     s.push(this->roi[0]);
 
@@ -334,12 +266,10 @@ void spectrumView::addRoi(std::pair<uint64_t, uint64_t> r) {
         s.pop();
     }
 
-    qDebug() << "Add ROI:" << r.first << "," << r.second;
-    qDebug() << "Now we have" << this->roi.size() << "ROIs";
     this->redrawRoi();
 }
 
-bool spectrumView::removeRoi(uint64_t channel) {
+bool SpectrumView::removeRoi(uint64_t channel) {
     for(auto it = this->roi.begin(); it != this->roi.end(); ++it) {
         if(channel >= (*it).first && channel < (*it).second) {
             this->roi.erase(it);
@@ -350,7 +280,7 @@ bool spectrumView::removeRoi(uint64_t channel) {
     return false;
 }
 
-bool spectrumView::removeRoi(std::pair<uint64_t, uint64_t> r) {
+bool SpectrumView::removeRoi(std::pair<uint64_t, uint64_t> r) {
     for(auto it = this->roi.begin(); it != this->roi.end(); it++) {
         if((*it) == r) {
             this->roi.erase(it);
@@ -362,34 +292,7 @@ bool spectrumView::removeRoi(std::pair<uint64_t, uint64_t> r) {
     return false;
 }
 
-void spectrumView::clearRoi() {
+void SpectrumView::clearRoi() {
     this->roi.clear();
     this->redrawRoi();
-}
-
-QChart *spectrumView::getChart() const {
-    return chart;
-}
-
-QLineSeries *spectrumView::getSeries() const {
-    return series;
-}
-
-QValueAxis *spectrumView::getAxisY() const {
-    return axisY;
-}
-
-QValueAxis *spectrumView::getAxisX() const {
-    return axisX;
-}
-
-QPointF spectrumView::getMax() const {
-    return max;
-}
-
-void spectrumView::setMax(const QPointF &value) {
-    max = value;
-}
-uint64_t spectrumView::getCursor() const {
-    return cursor;
 }

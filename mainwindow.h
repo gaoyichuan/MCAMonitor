@@ -6,6 +6,8 @@
 #include <QtCharts>
 #include <QtWidgets>
 
+#include <vector>
+
 namespace Ui {
 class MainWindow;
 }
@@ -19,11 +21,15 @@ class MainWindow : public QMainWindow {
 
   public Q_SLOTS:
     void on_menu_startAcqAction();
+    void on_menu_stopAcqAction();
+    void on_menu_clearAcqDataAction();
     void on_menu_openFileAction();
+    void on_menu_saveFileAction();
     void on_spectrum_simUpdated(uint64_t startTime);
     void on_spectrum_dataUpdated();
+    void on_spectrum_cursorUpdated(uint64_t cur);
 
-  private:
+private:
     Ui::MainWindow *ui;
     QLabel statusBar_filenameLabel;
 };
