@@ -10,6 +10,8 @@ int main(int argc, char *argv[]) {
     a.setOrganizationName("gaoyichuan");
     a.setApplicationName("MCA Monitor");
     a.setKeyboardInputInterval(100);
+    a.setQuitOnLastWindowClosed(true);
+
     MainWindow w;
     w.show();
 

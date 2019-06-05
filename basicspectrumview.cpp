@@ -4,6 +4,7 @@
 QT_CHARTS_USE_NAMESPACE
 
 BasicSpectrumView::BasicSpectrumView(QWidget *parent) : QChartView(new QChart(), parent) {
+    this->setChart(this->chart);
     this->chart->legend()->hide();
     this->chart->addSeries(this->series);
     this->chart->addAxis(this->axisX, Qt::AlignBottom);
@@ -14,7 +15,6 @@ BasicSpectrumView::BasicSpectrumView(QWidget *parent) : QChartView(new QChart(),
     this->series->attachAxis(this->axisX);
     this->series->attachAxis(this->axisY);
 
-    this->setChart(this->chart);
     this->setRenderHint(QPainter::Antialiasing);
 
     this->repaint();

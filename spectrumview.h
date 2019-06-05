@@ -74,7 +74,7 @@ class SpectrumView : public BasicSpectrumView {
     double simInteval = 0;
     std::default_random_engine gen;
     //    std::normal_distribution<float> *dist;
-    std::binomial_distribution<> *dist;
+    std::binomial_distribution<uint64_t> *dist;
 };
 
 #endif // SPECTRUMVIEW_H

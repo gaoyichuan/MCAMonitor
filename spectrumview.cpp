@@ -132,7 +132,7 @@ void SpectrumView::startSimAcq(double inteval) {
     this->simQueue.resize(1024);
     this->getAxisX()->setRange(0, 1024);
 
-    this->dist = new std::binomial_distribution(this->getSeries()->count(), 0.5);
+    this->dist = new std::binomial_distribution<uint64_t>(this->getSeries()->count(), 0.5);
     this->getAxisY()->setRange(0, 512);
 
     connect(this->simTimer, SIGNAL(timeout()), this, SLOT(simEnqueue()));

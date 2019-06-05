@@ -156,6 +156,7 @@ void MainWindow::on_spectrum_cursorUpdated(uint64_t cur) {
 // call by menu buttons
 void MainWindow::on_menu_startAcqAction() {
     this->on_menu_clearAcqDataAction();
+    this->statusBar_filenameLabel.setText("Simulation");
     double setInteval = this->ui->simIntevalInput->value();
     this->ui->spectrumArea->startSimAcq(setInteval);
 }
@@ -163,6 +164,7 @@ void MainWindow::on_menu_startAcqAction() {
 void MainWindow::on_menu_clearAcqDataAction() {
     this->ui->spectrumArea->clearAcqData();
     this->ui->roiScaleArea->clearRoi();
+    this->statusBar_filenameLabel.setText("No file opened");
 }
 
 void MainWindow::on_menu_stopAcqAction() {
